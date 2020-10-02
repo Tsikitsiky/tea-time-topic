@@ -1,59 +1,5 @@
-const addForm = document.querySelector('form');
-const nextTopic = document.querySelector('.next-topic');
-const pastTopic = document.querySelector('.past-topic');
-const list = document.querySelector('.list');
-const endPoint = 'https://gist.githubusercontent.com/Pinois/93afbc4a061352a0c70331ca4a16bb99/raw/6da767327041de13693181c2cb09459b0a3657a1/topics.json';
-
-//where we store the topics
-let topics = [];
-
-//fetch the data
-async function fetchData() {
-    const response = await fetch(endPoint);
-    const data = await response.json();
-    localStorage.setItem('topics', JSON.stringify(data));
-    return data;
-}
-
-//set items to local storage
-function updateLocalStorage() {
-    localStorage.setItem('topics', JSON.stringify(topics));
-}
-
-//init from ls
-function initializeFromLocalStorage() {
-    const stringFromLs = localStorage.getItem('topics');
-    const lsItems = JSON.parse(stringFromLs);
-    if(lsItems) {
-        topics = lsItems
-        console.log(topics)
-    } else {
-        fetchData();
-    }
-    list.dispatchEvent(new CustomEvent('listUpdated')); 
-}
-
-
-//add a topic to the list
-const handleSubmitTopic = (e) => {
-    e.preventDefault();
-    const topic = e.currentTarget.topic.value;
-    if(!topic) return;
-    const newTopic = {
-        id: Date.now().toString(),
-		upvotes: 0,
-		title: topic,
-		downvotes: 0,
-		discussedOn: ""
-    }
-    topics.push(newTopic);
-    list.dispatchEvent(new CustomEvent('listUpdated')); 
-    addForm.reset();
-} 
-
-
 //display the topics on the list
-function displayTopic() {
+export function displayTopic() {
 
     //filter the topics in two, past and next 
     //sort them by their rates if they are not discussed yet and by their dates if they are already discussed 
@@ -95,63 +41,6 @@ function displayTopic() {
     
             `}).join('');
 
-        nextTopic.innerHTML = html;
-        pastTopic.innerHTML = html2;
+        nextTopic.insertAdjacentHTML('beforeend', html);
+        pastTopic.insertAdjacentHTML('beforeend', html2);
 }
-
-//upvote a topic 
-const upVote = (id) => {
-    const topic = topics.find(topic => topic.id === id);
-    topic.upvotes++;
-    list.dispatchEvent(new CustomEvent('listUpdated'));
-}
-
-//downvote a topic
-const downVote = (id) => {
-    const topic = topics.find(topic => topic.id === id);
-    topic.downvotes++;
-    list.dispatchEvent(new CustomEvent('listUpdated'));
-}
-
-//archive a topic
-const archiveTopic = (id) => {
-    const topic = topics.find(topic => topic.id === id);
-    topic.discussedOn = Date.now().toString();
-    list.dispatchEvent(new CustomEvent('listUpdated'));
-}
-
-//delete a topic
-const deleteTopic = (id) => {
-    topics = topics.filter(topic => topic.id !== id);
-    list.dispatchEvent(new CustomEvent('listUpdated'));
-}
-
-//handle clicks in the list
-const handleClick = (e) => {
-    const topicToUpdate = e.target.closest('article').dataset.id;
-    const button = e.target.closest('button');
-    if(button.matches('.thumb-up')) {
-        upVote(topicToUpdate);
-    }
-
-    if(button.matches('.thumb-down')) {
-        downVote(topicToUpdate);
-    }
-
-    if(button.matches('.archive')) {
-        archiveTopic(topicToUpdate);
-    }
-
-    if(button.matches('.delete')) {
-        deleteTopic(topicToUpdate)
-    }
-}
-
-//event listeners
-list.addEventListener('listUpdated', displayTopic);
-list.addEventListener('listUpdated', updateLocalStorage);
-addForm.addEventListener('submit', handleSubmitTopic);
-list.addEventListener('click', handleClick);
-//fetchData();
-initializeFromLocalStorage()
-
