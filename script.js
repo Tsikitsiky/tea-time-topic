@@ -26,7 +26,6 @@ function initializeFromLocalStorage() {
     const lsItems = JSON.parse(stringFromLs);
     if(lsItems) {
         topics = lsItems
-        console.log(topics)
     } else {
         fetchData();
     }
@@ -81,7 +80,7 @@ function displayTopic() {
         //html for the past topic
         const html2 = filterPast.map(topic => {
             let date = new Date(Number(topic.discussedOn));
-            let month = date . getMonth();
+            let month = date.getMonth() + 1;
             let day = date.getDate();
             let year = date.getFullYear();
             let fullDate = `${day}/ ${month} / ${year}`;
